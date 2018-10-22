@@ -8,6 +8,6 @@ internal object Renderer {
      * @param thing the thing to print
      */
     internal fun printConsole(thing: Any) {
-        println(thing)
+        print(thing)
     }
 }
