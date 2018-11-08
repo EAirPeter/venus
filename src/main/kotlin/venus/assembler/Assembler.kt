@@ -67,7 +67,7 @@ internal class AssemblerPassOne(private val text: String) {
     }
 
     private fun doPassOne() {
-        for (line in text.split('\n')) {
+        for (line in text.lines()) {
             try {
                 currentLineNumber++
 
