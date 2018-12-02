@@ -43,6 +43,8 @@ class Simulator(val linkedProgram: LinkedProgram) {
 
     fun isDone(): Boolean = getPC() >= maxpc
 
+    fun getCycles() : Int = cycles
+
     fun run() {
         while (!isDone()) {
             step()
