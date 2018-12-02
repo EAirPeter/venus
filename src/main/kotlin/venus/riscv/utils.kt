@@ -26,13 +26,12 @@ private fun isCharacterLiteral(s: String) =
         s.first() == '\'' && s.last() == '\''
 
 fun unescapeString(s: String) =
-  s.replace("\\n", "\n")
-   .replace("\\r", "\r")
-   .replace("\\t", "\t")
-   .replace("\\b", "\b")
-   .replace("\\\"", "\"")
-   .replace("\\'", "'")
-
+        s.replace("\\n", "\n")
+                .replace("\\r", "\r")
+                .replace("\\t", "\t")
+                .replace("\\b", "\b")
+                .replace("\\\"", "\"")
+                .replace("\\'", "'")
 
 private fun characterLiteralToInt(s: String): Int {
     val stripSingleQuotes = s.drop(1).dropLast(1)
