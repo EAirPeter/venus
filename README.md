@@ -1,26 +1,13 @@
-# [venus](https://kvakil.github.io/venus/)
-[![Build Status](https://travis-ci.org/kvakil/venus.svg?branch=master)](https://travis-ci.org/kvakil/venus)
+# venus - JVM branch
 
-__venus__ is a RISC-V instruction set simulator built for education.
+This branch should always be ahead of `master`. It contains some changes from `master` necessary to compile Venus to the JVM.
 
-## Using venus
+## Create venus JAR
 
-venus is [available online](https://kvakil.github.io/venus/).
+Run `gradle clean jar` from root.
 
-## Features
-* RV32IM
-* Single-step debugging with undo feature
-* Breakpoint debugging
-* View machine code and original instructions side-by-side
-* Several `ecall`s: including `print` and `sbrk`
-* Memory visualization
+## Keep it synced
 
-## Resources
+Remember 1: If there is a need to add any new feature to Venus in general (e.g. its assembler or simulator), please make the changes in `master` and then merge them in to `jvm`. Do not make the changes in `jvm` directly.
 
-#### [User Guide](https://github.com/kvakil/venus/wiki)
-
-#### [Roadmap](https://github.com/kvakil/venus/projects/2)
-
-#### [Contributing](https://github.com/kvakil/venus/blob/master/CONTRIBUTING.md)
-
-#### [MIT License](https://github.com/kvakil/venus/blob/master/LICENSE)
+Remember 2: If there are any changes to `master`, please run `git merge master` from this branch.
