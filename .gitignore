@@ -3,6 +3,10 @@
 /bin/
 /out/
 /.settings/
+/venus
+/tmp
+
+*~
 
 # Ignore Gradle GUI config
 gradle-app.setting
