@@ -140,3 +140,8 @@ body {
 .panel-block > .field {
     width: 100%;
 }
+
+.stdout {
+    font-weight: bold;
+    font-size: 1.2em;
+}
