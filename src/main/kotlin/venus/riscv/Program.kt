@@ -93,19 +93,29 @@ class Program(val name: String = "anonymous") {
      * Adds a line to the relocation table.
      *
      * @param label the label to relocate
-     * @param offset the byte offset the label is at (from the start of the program)
+     * @param labelOffset amount to add to the label value before applying
+     *                    relocation
+     * @param offset the byte offset at which to apply the relocation
+     *               (from the start of the program)
      */
-    fun addRelocation(relocator: Relocator, label: String, offset: Int = textSize) =
-            relocationTable.add(RelocationInfo(relocator, offset, label))
+    fun addRelocation(relocator: Relocator, label: String, labelOffset: Int,
+                      offset: Int = textSize) =
+            relocationTable.add(RelocationInfo(relocator, offset,
+                                               label, labelOffset))
 
     /**
      * Adds a line to the data relocation table.
      *
      * @param label the label to relocate
-     * @param offset the byte offset the label is at (from the start of the data section)
+     * @param labelOffset amount to add to the label value before applying
+     *                    relocation
+     * @param offset the byte offset at which to apply the relocation
+     *               (from the start of the program)
      */
-    fun addDataRelocation(label: String, offset: Int = textSize) =
-            dataRelocationTable.add(DataRelocationInfo(offset, label))
+    fun addDataRelocation(label: String, labelOffset: Int,
+                           offset: Int = textSize) =
+            dataRelocationTable.add(DataRelocationInfo(offset,
+                                                       label, labelOffset))
 
     /**
      * Makes a label global.

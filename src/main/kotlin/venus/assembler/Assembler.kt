@@ -158,7 +158,7 @@ internal class AssemblerPassOne(private val text: String) {
                     val str = args[0]
                     if (str.length < 2 || str[0] != str[str.length - 1] || str[0] != '"') {
                         throw IllegalArgumentException()
-                    }
+                    } // '"'
                     unescapeString(str.drop(1).dropLast(1))
                 } catch (e: Throwable) {
                     throw AssemblerError("couldn't parse ${args[0]} as a string")
@@ -186,13 +186,28 @@ internal class AssemblerPassOne(private val text: String) {
                         prog.addToData((word shr 24).toByte())
                     } catch (e: NumberFormatException) {
                         /* arg is not a number; interpret as label */
-                        prog.addDataRelocation(arg, currentDataOffset - MemorySegments.STATIC_BEGIN)
+                        prog.addDataRelocation(symbolPart(arg), 
+                                               labelOffsetPart(arg),
+                                               currentDataOffset - MemorySegments.STATIC_BEGIN)
                         prog.addToData(0)
                         prog.addToData(0)
                         prog.addToData(0)
                         prog.addToData(0)
                     }
                     currentDataOffset += 4
+                }
+            }
+
+            ".space" -> {
+                checkArgsLength(args, 1)
+                try {
+                    val reps = userStringToInt(args[0])
+                    for (c in 1..reps) {
+                        prog.addToData(0)
+                    }
+                    currentDataOffset += reps
+                } catch (e: NumberFormatException) {
+                    throw AssemblerError("${args[0]} not a valid argument")
                 }
             }
 
@@ -224,7 +239,33 @@ internal class AssemblerPassOne(private val text: String) {
     }
 
     fun addRelocation(relocator: Relocator, offset: Int, label: String) =
-            prog.addRelocation(relocator, label, offset)
+            prog.addRelocation(relocator, symbolPart(label),
+                               labelOffsetPart(label), offset)
+
+    /** Return the symbolic part of LABELARG, where LABELARG may be either
+     *  <symbol>, <symbol>+<decimal numeral>, or <symbol>-<decimal numeral>.
+     */
+    fun symbolPart(labelArg: String): String {
+        val k = labelArg.indexOfAny("+-".toCharArray())
+        if (k == -1) {
+            return labelArg
+        } else {
+            return labelArg.substring(0, k)
+        }
+    }
+
+    /** Return the numeric offset part of LABELARG, where LABELARG may be either
+     *  <symbol> (result 0), <symbol>+<decimal numeral> (result
+     *  <decimal numeral> as an Int), or <symbol>-<decimal numeral>.
+     */
+    fun labelOffsetPart(labelArg: String): Int {
+        val k = labelArg.indexOfAny("+-".toCharArray())
+        if (k == -1) {
+            return 0
+        } else {
+            return labelArg.substring(k).toInt()
+        }
+    }
 }
 
 /**
