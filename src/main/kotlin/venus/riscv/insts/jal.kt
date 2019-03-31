@@ -21,7 +21,7 @@ val jal = Instruction(
             checkArgsLength(args.size, 2)
 
             mcode[InstructionField.RD] = regNameToNumber(args[0])
-            prog.addRelocation(JALRelocator, args[1])
+            prog.addRelocation(JALRelocator, args[1], 0)
         },
         impl32 = RawImplementation { mcode, sim ->
             val rd = mcode[InstructionField.RD]
