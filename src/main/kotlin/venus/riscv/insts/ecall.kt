@@ -1,6 +1,5 @@
 package venus.riscv.insts
 
-import venus.glue.Inputter
 import venus.glue.Renderer
 import venus.riscv.InstructionField
 import venus.riscv.MemorySegments
@@ -24,12 +23,10 @@ val ecall = Instruction(
             when (whichCall) {
                 1 -> printInteger(sim)
                 4 -> printString(sim)
-                8 -> readString(sim)
                 9 -> sbrk(sim)
                 10 -> exit(sim)
                 11 -> printChar(sim)
                 17 -> exitWithCode(sim)
-                18 -> fillLineBuffer(sim)
                 else -> Renderer.printConsole("Invalid ecall $whichCall")
             }
             sim.incrementPC(mcode.length)
@@ -54,22 +51,6 @@ private fun printString(sim: Simulator) {
     }
 }
 
-private fun readString(sim: Simulator) {
-    val dest = sim.getReg(11)
-    val len = sim.getReg(12)
-    var i: Int
-    i = 0
-    while (i < len) {
-        val c = Inputter.nextByte()
-        if (c == -1) {
-            break
-        }
-        sim.storeByte(dest + i, c)
-        i += 1
-    }
-    sim.storeByte(dest + i, 0)
-}
-
 private fun sbrk(sim: Simulator) {
     val bytes = sim.getReg(11)
     if (bytes < 0) return
@@ -91,8 +72,3 @@ private fun exitWithCode(sim: Simulator) {
     val retVal = sim.getReg(11)
     Renderer.printConsole("Exited with error code $retVal\n")
 }
-
-private fun fillLineBuffer(sim: Simulator) {
-    sim.setReg(10, Inputter.bufferLine())
-}
-
