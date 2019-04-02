@@ -158,7 +158,7 @@ internal class AssemblerPassOne(private val text: String) {
                     val str = args[0]
                     if (str.length < 2 || str[0] != str[str.length - 1] || str[0] != '"') {
                         throw IllegalArgumentException()
-                    }
+                    } // '"'
                     unescapeString(str.drop(1).dropLast(1))
                 } catch (e: Throwable) {
                     throw AssemblerError("couldn't parse ${args[0]} as a string")
