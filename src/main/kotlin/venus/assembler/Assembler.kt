@@ -5,6 +5,7 @@ import venus.riscv.MemorySegments
 import venus.riscv.Program
 import venus.riscv.insts.dsl.Instruction
 import venus.riscv.insts.dsl.relocators.Relocator
+import venus.riscv.unescapeString
 import venus.riscv.userStringToInt
 
 /**
@@ -154,7 +155,11 @@ internal class AssemblerPassOne(private val text: String) {
             ".string", ".asciiz" -> {
                 checkArgsLength(args, 1)
                 val ascii: String = try {
-                    JSON.parse(args[0])
+                    val str = args[0]
+                    if (str.length < 2 || str[0] != str[str.length - 1] || str[0] != '"') {
+                        throw IllegalArgumentException()
+                    }
+                    unescapeString(str.drop(1).dropLast(1))
                 } catch (e: Throwable) {
                     throw AssemblerError("couldn't parse ${args[0]} as a string")
                 }
