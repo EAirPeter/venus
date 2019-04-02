@@ -6,6 +6,8 @@ import venus.riscv.Program
 import venus.riscv.insts.dsl.Instruction
 import venus.riscv.insts.dsl.relocators.Relocator
 import venus.riscv.unescapeString
+import venus.riscv.labelOffsetPart
+import venus.riscv.symbolPart
 import venus.riscv.userStringToInt
 
 /**
@@ -230,9 +232,23 @@ internal class AssemblerPassOne(private val text: String) {
                 }
             }
 
+            ".equiv", ".equ", ".set" -> {
+                checkArgsLength(args, 2)
+                try {
+                    val v = userStringToInt(args[1])
+                    val oldOffset = prog.addLabel(args[0], v)
+                    if (directive == ".equiv" && oldOffset != null) {
+                        throw AssemblerError("attempt to redefine ${args[0]}")
+                    }
+                } catch (e: NumberFormatException) {
+                    throw AssemblerError("invalid number, got ${args[1]}")
+                }
+            }
+
             ".float", ".double" -> {
                 println("Warning: $directive not currently supported!")
             }
+
 
             else -> throw AssemblerError("unknown assembler directive $directive")
         }
@@ -242,30 +258,6 @@ internal class AssemblerPassOne(private val text: String) {
             prog.addRelocation(relocator, symbolPart(label),
                                labelOffsetPart(label), offset)
 
-    /** Return the symbolic part of LABELARG, where LABELARG may be either
-     *  <symbol>, <symbol>+<decimal numeral>, or <symbol>-<decimal numeral>.
-     */
-    fun symbolPart(labelArg: String): String {
-        for (i in labelArg.indices) {
-            if (labelArg[i] == '+' || labelArg[i] == '-') {
-                return labelArg.substring(0, i)
-            }
-        }
-        return labelArg
-    }
-
-    /** Return the numeric offset part of LABELARG, where LABELARG may be either
-     *  <symbol> (result 0), <symbol>+<decimal numeral> (result
-     *  <decimal numeral> as an Int), or <symbol>-<decimal numeral>.
-     */
-    fun labelOffsetPart(labelArg: String): Int {
-        for (i in labelArg.indices) {
-            if (labelArg[i] == '+' || labelArg[i] == '-') {
-                return labelArg.substring(i).toInt()
-            }
-        }
-        return 0
-    }
 }
 
 /**
