@@ -241,12 +241,12 @@ internal class AssemblerPassOne(private val text: String) {
      *  <symbol>, <symbol>+<decimal numeral>, or <symbol>-<decimal numeral>.
      */
     fun symbolPart(labelArg: String): String {
-        val k = labelArg.indexOfAny("+-".toCharArray())
-        if (k == -1) {
-            return labelArg
-        } else {
-            return labelArg.substring(0, k)
+        for (i in labelArg.indices) {
+            if (labelArg[i] == '+' || labelArg[i] == '-') {
+                return labelArg.substring(0, i)
+            }
         }
+        return labelArg
     }
 
     /** Return the numeric offset part of LABELARG, where LABELARG may be either
@@ -254,12 +254,12 @@ internal class AssemblerPassOne(private val text: String) {
      *  <decimal numeral> as an Int), or <symbol>-<decimal numeral>.
      */
     fun labelOffsetPart(labelArg: String): Int {
-        val k = labelArg.indexOfAny("+-".toCharArray())
-        if (k == -1) {
-            return 0
-        } else {
-            return labelArg.substring(k).toInt()
+        for (i in labelArg.indices) {
+            if (labelArg[i] == '+' || labelArg[i] == '-') {
+                return labelArg.substring(i).toInt()
+            }
         }
+        return 0
     }
 }
 
