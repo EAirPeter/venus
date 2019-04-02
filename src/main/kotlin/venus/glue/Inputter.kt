@@ -20,7 +20,7 @@ internal object Inputter {
             return -1
         } else {
             bufferPntr = 0
-            buffer.clear()
+            buffer.setLength(0)
             buffer.append(line)
             return buffer.length
         }
