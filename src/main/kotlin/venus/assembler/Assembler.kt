@@ -229,14 +229,9 @@ internal class AssemblerPassOne(private val text: String) {
 
             ".equiv", ".equ", ".set" -> {
                 checkArgsLength(args, 2)
-                try {
-                    val v = userStringToInt(args[1])
-                    val oldOffset = prog.addLabel(args[0], v)
-                    if (directive == ".equiv" && oldOffset != null) {
-                        throw AssemblerError("attempt to redefine ${args[0]}")
-                    }
-                } catch (e: NumberFormatException) {
-                    throw AssemblerError("invalid number, got ${args[1]}")
+                val oldDefn = prog.addEqu(args[0], args[1])
+                if (directive == ".equiv" && oldDefn != null) {
+                    throw AssemblerError("attempt to redefine ${args[0]}")
                 }
             }
 
@@ -265,6 +260,7 @@ internal class AssemblerPassOne(private val text: String) {
 internal class AssemblerPassTwo(val prog: Program, val talInstructions: List<DebugInstruction>) {
     private val errors = ArrayList<AssemblerError>()
     fun run(): AssemblerOutput {
+        resolveEquivs(prog)
         for ((dbg, inst) in talInstructions) {
             try {
                 addInstruction(inst)
@@ -290,6 +286,20 @@ internal class AssemblerPassTwo(val prog: Program, val talInstructions: List<Deb
         inst.parser(prog, mcode, tokens.drop(1))
         prog.add(mcode)
     }
+
+    /** Resolve all labels in PROG defined by .equiv, .equ, or .set and add
+     *  these to PROG as ordinary labels.  Checks for duplicate or
+     *  conflicting definition. */
+    private fun resolveEquivs(prog: Program) {
+        val conflicts = prog.labels.keys.intersect(prog.equivs.keys)
+        if (conflicts.isNotEmpty()) {
+            throw AssemblerError("conflicting definitions for $conflicts")
+        }
+
+        for (sym in prog.equivs) {
+            //FIXME
+        }
+
 }
 
 /**

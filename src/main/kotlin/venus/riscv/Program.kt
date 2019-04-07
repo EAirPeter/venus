@@ -17,6 +17,7 @@ class Program(val name: String = "anonymous") {
     val insts = ArrayList<MachineCode>()
     val debugInfo = ArrayList<DebugInfo>()
     val labels = HashMap<String, Int>()
+    val equivs = HashMap<String, String>()
     val relocationTable = ArrayList<RelocationInfo>()
     val dataRelocationTable = ArrayList<DataRelocationInfo>()
     val dataSegment = ArrayList<Byte>()
@@ -75,6 +76,11 @@ class Program(val name: String = "anonymous") {
      * @param offset the byte offset to add it at (from the start of the program)
      */
     fun addLabel(label: String, offset: Int) = labels.put(label, offset)
+
+    /**
+     * Adds a symbol defined by .equiv, .equ, or .set.
+     */
+    fun addEqu(label: String, defn: String) = equivs.put(label, defn)
 
     /**
      * Gets the _relative_ label offset, or null if it does not exist.
