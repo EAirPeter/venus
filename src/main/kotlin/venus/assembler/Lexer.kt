@@ -19,7 +19,6 @@ object Lexer {
         val labels = ArrayList<String>()
         val insnTokens = ArrayList<String>()
 
-        var baseRegUsed = false
         for (mat in tokenRE.findAll(line)) {
             val groups = mat.groups
             when {
@@ -30,8 +29,7 @@ object Lexer {
                 groups[2] != null -> labels.add(groups[2]!!.value)
                 groups[3] != null -> insnTokens.add(groups[3]!!.value)
                 groups[4] != null -> {
-                    baseRegUsed = true
-                    insnTokens.add(groups[4]!!.value)
+                    insnTokens.add("(" + groups[4]!!.value + ")")
                 }
                 else -> throw AssemblerError("unclosed string")
             }
