@@ -5,12 +5,21 @@ import venus.assembler.LineTokens
 import venus.assembler.PseudoWriter
 import venus.riscv.insts.dsl.relocators.PCRelHiRelocator
 import venus.riscv.insts.dsl.relocators.PCRelLoRelocator
+import venus.riscv.isNumeral
 
 /**
  * Writes a load pseudoinstruction. (Those applied to a label)
  */
 object Load : PseudoWriter() {
     override operator fun invoke(args: LineTokens, state: AssemblerPassOne): List<LineTokens> {
+        if (args.size == 4) {
+            if (args[3].startsWith('(')) {
+                return listOf(listOf(args[0], args[1], args[2],
+                                     args[3].substring(1, args[3].length - 1)))
+            } else {
+                return listOf(args)
+            }
+        }
         checkArgsLength(args, 3)
 
         val auipc = listOf("auipc", args[1], "0")
