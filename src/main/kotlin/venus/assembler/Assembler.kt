@@ -9,6 +9,7 @@ import venus.riscv.unescapeString
 import venus.riscv.labelOffsetPart
 import venus.riscv.symbolPart
 import venus.riscv.userStringToInt
+import venus.riscv.isNumeral
 
 /**
  * This singleton implements a simple two-pass assembler to transform files into programs.
@@ -86,7 +87,7 @@ internal class AssemblerPassOne(private val text: String) {
                 if (args.isEmpty() || args[0].isEmpty()) continue // empty line
 
                 if (isAssemblerDirective(args[0])) {
-                    parseAssemblerDirective(args[0], args.drop(1), line)
+                    parseAssemblerDirective(args[0], args.drop(1))
                 } else {
                     val expandedInsts = replacePseudoInstructions(args)
                     for (inst in expandedInsts) {
@@ -138,7 +139,7 @@ internal class AssemblerPassOne(private val text: String) {
      * @param args any arguments following the directive
      * @param line the original line (which is needed for some directives)
      */
-    private fun parseAssemblerDirective(directive: String, args: LineTokens, line: String) {
+    private fun parseAssemblerDirective(directive: String, args: LineTokens) {
         when (directive) {
             ".data" -> inTextSegment = false
             ".text" -> inTextSegment = true
@@ -234,14 +235,9 @@ internal class AssemblerPassOne(private val text: String) {
 
             ".equiv", ".equ", ".set" -> {
                 checkArgsLength(args, 2)
-                try {
-                    val v = userStringToInt(args[1])
-                    val oldOffset = prog.addLabel(args[0], v)
-                    if (directive == ".equiv" && oldOffset != null) {
-                        throw AssemblerError("attempt to redefine ${args[0]}")
-                    }
-                } catch (e: NumberFormatException) {
-                    throw AssemblerError("invalid number, got ${args[1]}")
+                val oldDefn = prog.addEqu(args[0], args[1])
+                if (directive == ".equiv" && oldDefn != null) {
+                    throw AssemblerError("attempt to redefine ${args[0]}")
                 }
             }
 
@@ -270,6 +266,7 @@ internal class AssemblerPassOne(private val text: String) {
 internal class AssemblerPassTwo(val prog: Program, val talInstructions: List<DebugInstruction>) {
     private val errors = ArrayList<AssemblerError>()
     fun run(): AssemblerOutput {
+        resolveEquivs(prog)
         for ((dbg, inst) in talInstructions) {
             try {
                 addInstruction(inst)
@@ -295,6 +292,48 @@ internal class AssemblerPassTwo(val prog: Program, val talInstructions: List<Deb
         inst.parser(prog, mcode, tokens.drop(1))
         prog.add(mcode)
     }
+
+    /** Resolve all labels in PROG defined by .equiv, .equ, or .set and add
+     *  these to PROG as ordinary labels.  Checks for duplicate or
+     *  conflicting definition. */
+    private fun resolveEquivs(prog: Program) {
+        val conflicts = prog.labels.keys.intersect(prog.equivs.keys)
+        if (conflicts.isNotEmpty()) {
+            throw AssemblerError("conflicting definitions for $conflicts")
+        }
+
+        val processing = HashSet<String>()
+        for (equiv in prog.equivs.keys) {
+            if (equiv !in prog.labels.keys) {
+                prog.labels[equiv] = findDefn(equiv, prog, processing)
+            }
+        }
+    }
+
+    /** Return the ultimate definition of SYM, an .equ-defined symbol, in
+     *  PROG, assuming that if SYM is in ACTIVE, it is part of a 
+     *  circular chain of definitions. */
+    private fun findDefn(sym: String, prog: Program,
+                         active: HashSet<String>): Int {
+        // FIXME: Global symbols not defined in this program.
+        if (sym in active) {
+            throw AssemblerError("circularity in definition of $sym")
+        }
+        val value = prog.equivs[sym]!!
+        if (isNumeral(value)) {
+            return userStringToInt(value)
+        } else if (value in prog.labels.keys) {
+            return prog.labels[value]!!
+        } else if (value in prog.equivs.keys) {
+            active.add(sym)
+            val result = findDefn(value, prog, active)
+            active.remove(sym)
+            return result
+        } else {
+            throw AssemblerError("undefined symbol: $value")
+        }            
+    }
+        
 }
 
 /**
@@ -304,3 +343,4 @@ internal class AssemblerPassTwo(val prog: Program, val talInstructions: List<Deb
  * @return the instruction (aka the first argument, in lowercase)
  */
 private fun getInstruction(tokens: LineTokens) = tokens[0].toLowerCase()
+
