@@ -1,5 +1,6 @@
 package venus.riscv
 
+import venus.assembler.AssemblerError
 import venus.assembler.DebugInfo
 import venus.linker.DataRelocationInfo
 import venus.linker.RelocationInfo
@@ -81,6 +82,44 @@ class Program(val name: String = "anonymous") {
      * Adds a symbol defined by .equiv, .equ, or .set.
      */
     fun addEqu(label: String, defn: String) = equivs.put(label, defn)
+
+    private val SYM_PATN = Regex("""(.*?)(?:([-+])(?:(\d+)|(.*)))?""")
+
+    /** Return the symbolic part of LABELARG, where LABELARG may be either
+     *  <symbol>, <symbol>+<decimal numeral>, or <symbol>-<decimal numeral>.
+     */
+    fun symbolPart(labelArg: String): String {
+        val match = SYM_PATN.find(labelArg)
+        if (match == null) {
+            throw AssemblerError("bad symbol reference: $labelArg")
+        }
+        return match.groupValues[1]
+    } 
+
+    /** Return the numeric offset part of LABELARG, where LABELARG may be either
+     *  <symbol> (result 0), <symbol>+<decimal numeral> (result
+     *  <decimal numeral> as an Int), <symbol>-<decimal numeral>,
+     *   <symbol>+<absolute symbol>, or <symbol>-<abssolute symbol>.  Here,
+     *   <absolute symbol> refers to a .equiv'ed symbol that resolves to
+     *   an immediate constant (as in .equiv value, 13).
+     */
+    fun labelOffsetPart(labelArg: String): Int {
+        val match = SYM_PATN.find(labelArg)
+        if (match == null) {
+            throw AssemblerError("ill-formed symbol reference: $labelArg")
+        }
+        val (_, sign, num, offsetSym) = match.destructured
+        if (sign == "") {
+            return 0
+        }
+        if (num != "") {
+            return (sign + num).toInt()
+        }
+        if (offsetSym !in labels) {
+            throw AssemblerError("undefined symbol: $offsetSym")
+        }
+        return labels[offsetSym]!!
+    }
 
     /**
      * Gets the _relative_ label offset, or null if it does not exist.
