@@ -83,7 +83,7 @@ class Program(val name: String = "anonymous") {
      */
     fun addEqu(label: String, defn: String) = equivs.put(label, defn)
 
-    private val SYM_PATN = Regex("""(.*?)(?:([-+])(?:(\d+)|(.*)))?""")
+    private val SYM_PATN = Regex("""(.*?)(?:([-+])(?:(\d+)|(.*)))?$""")
 
     /** Return the symbolic part of LABELARG, where LABELARG may be either
      *  <symbol>, <symbol>+<decimal numeral>, or <symbol>-<decimal numeral>.
