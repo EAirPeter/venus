@@ -8,6 +8,7 @@ import venus.riscv.insts.dsl.relocators.Relocator
 import venus.riscv.labelOffsetPart
 import venus.riscv.symbolPart
 import venus.riscv.userStringToInt
+import venus.riscv.isNumeral
 
 /**
  * This singleton implements a simple two-pass assembler to transform files into programs.
@@ -85,7 +86,7 @@ internal class AssemblerPassOne(private val text: String) {
                 if (args.isEmpty() || args[0].isEmpty()) continue // empty line
 
                 if (isAssemblerDirective(args[0])) {
-                    parseAssemblerDirective(args[0], args.drop(1), line)
+                    parseAssemblerDirective(args[0], args.drop(1))
                 } else {
                     val expandedInsts = replacePseudoInstructions(args)
                     for (inst in expandedInsts) {
@@ -137,7 +138,7 @@ internal class AssemblerPassOne(private val text: String) {
      * @param args any arguments following the directive
      * @param line the original line (which is needed for some directives)
      */
-    private fun parseAssemblerDirective(directive: String, args: LineTokens, line: String) {
+    private fun parseAssemblerDirective(directive: String, args: LineTokens) {
         when (directive) {
             ".data" -> inTextSegment = false
             ".text" -> inTextSegment = true
@@ -296,10 +297,38 @@ internal class AssemblerPassTwo(val prog: Program, val talInstructions: List<Deb
             throw AssemblerError("conflicting definitions for $conflicts")
         }
 
-        for (sym in prog.equivs) {
-            //FIXME
+        val processing = HashSet<String>()
+        for (equiv in prog.equivs.keys) {
+            if (equiv !in prog.labels.keys) {
+                prog.labels[equiv] = findDefn(equiv, prog, processing)
+            }
         }
+    }
 
+    /** Return the ultimate definition of SYM, an .equ-defined symbol, in
+     *  PROG, assuming that if SYM is in ACTIVE, it is part of a 
+     *  circular chain of definitions. */
+    private fun findDefn(sym: String, prog: Program,
+                         active: HashSet<String>): Int {
+        // FIXME: Global symbols not defined in this program.
+        if (sym in active) {
+            throw AssemblerError("circularity in definition of $sym")
+        }
+        val value = prog.equivs[sym]!!
+        if (isNumeral(value)) {
+            return userStringToInt(value)
+        } else if (value in prog.labels.keys) {
+            return prog.labels[value]!!
+        } else if (value in prog.equivs.keys) {
+            active.add(sym)
+            val result = findDefn(value, prog, active)
+            active.remove(sym)
+            return result
+        } else {
+            throw AssemblerError("undefined symbol: $value")
+        }            
+    }
+        
 }
 
 /**
@@ -309,3 +338,4 @@ internal class AssemblerPassTwo(val prog: Program, val talInstructions: List<Deb
  * @return the instruction (aka the first argument, in lowercase)
  */
 private fun getInstruction(tokens: LineTokens) = tokens[0].toLowerCase()
+
