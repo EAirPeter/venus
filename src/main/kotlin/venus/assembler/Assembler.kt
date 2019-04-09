@@ -6,8 +6,6 @@ import venus.riscv.Program
 import venus.riscv.insts.dsl.Instruction
 import venus.riscv.insts.dsl.relocators.Relocator
 import venus.riscv.unescapeString
-import venus.riscv.labelOffsetPart
-import venus.riscv.symbolPart
 import venus.riscv.userStringToInt
 import venus.riscv.isNumeral
 
@@ -189,8 +187,8 @@ internal class AssemblerPassOne(private val text: String) {
                         prog.addToData((word shr 24).toByte())
                     } catch (e: NumberFormatException) {
                         /* arg is not a number; interpret as label */
-                        prog.addDataRelocation(symbolPart(arg), 
-                                               labelOffsetPart(arg),
+                        prog.addDataRelocation(prog.symbolPart(arg), 
+                                               prog.labelOffsetPart(arg),
                                                currentDataOffset - MemorySegments.STATIC_BEGIN)
                         prog.addToData(0)
                         prog.addToData(0)
@@ -251,8 +249,8 @@ internal class AssemblerPassOne(private val text: String) {
     }
 
     fun addRelocation(relocator: Relocator, offset: Int, label: String) =
-            prog.addRelocation(relocator, symbolPart(label),
-                               labelOffsetPart(label), offset)
+            prog.addRelocation(relocator, prog.symbolPart(label),
+                               prog.labelOffsetPart(label), offset)
 
 }
 

@@ -6,9 +6,6 @@ import venus.riscv.Program
 import venus.riscv.insts.dsl.relocators.ImmAbsRelocator
 import venus.riscv.insts.dsl.getImmediate
 import venus.riscv.isNumeral
-import venus.riscv.labelOffsetPart
-import venus.riscv.symbolPart
-
 
 object ITypeParser : InstructionParser {
     const val I_TYPE_MIN = -2048
@@ -22,8 +19,8 @@ object ITypeParser : InstructionParser {
             mcode[InstructionField.IMM_11_0] =
                 getImmediate(args[2], I_TYPE_MIN, I_TYPE_MAX)
         } else {
-            prog.addRelocation(ImmAbsRelocator, symbolPart(args[2]),
-                               labelOffsetPart(args[2]))
+            prog.addRelocation(ImmAbsRelocator, prog.symbolPart(args[2]),
+                               prog.labelOffsetPart(args[2]))
         }
     }
 }

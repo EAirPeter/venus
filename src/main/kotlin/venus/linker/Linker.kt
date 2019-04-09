@@ -79,17 +79,24 @@ object Linker {
             }
             prog.dataSegment.forEach(linkedProgram.prog::addToData)
 
-            for ((relocator, offset, label, labelOffset) in prog.relocationTable) {
-                val toAddress = prog.labels.get(label)
+            for ((relocator, offset, label, labelOffset) 
+                in prog.relocationTable) {
+
                 val location = textTotalOffset + offset
-                if (toAddress != null) {
-                    /* TODO: fix this for variable length instructions */
-                    val mcode = linkedProgram.prog.insts[location / 4]
-                    relocator(mcode, location, toAddress + labelOffset)
+                val mcode = linkedProgram.prog.insts[location / 4]
+
+                if (label == "") {
+                    relocator(mcode, location, labelOffset)
                 } else {
-                    /* need to relocate globally */
-                    toRelocate.add(RelocationInfo(relocator, location,
-                                                  label, labelOffset))
+                    val toAddress = prog.labels.get(label)
+                    if (toAddress != null) {
+                        /* TODO: fix this for variable length instructions */
+                        relocator(mcode, location, toAddress + labelOffset)
+                    } else {
+                        /* need to relocate globally */
+                        toRelocate.add(RelocationInfo(relocator, location,
+                                                      label, labelOffset))
+                    }
                 }
             }
 

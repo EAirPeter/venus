@@ -56,28 +56,3 @@ private fun characterLiteralToInt(s: String): Int {
         throw NumberFormatException("could not parse character literal $s")
     }
 }
-
-/** Return the symbolic part of LABELARG, where LABELARG may be either
- *  <symbol>, <symbol>+<decimal numeral>, or <symbol>-<decimal numeral>.
- */
-fun symbolPart(labelArg: String): String {
-    for (i in labelArg.indices) {
-        if (labelArg[i] == '+' || labelArg[i] == '-') {
-            return labelArg.substring(0, i)
-        }
-    }
-    return labelArg
-}
-
-/** Return the numeric offset part of LABELARG, where LABELARG may be either
- *  <symbol> (result 0), <symbol>+<decimal numeral> (result
- *  <decimal numeral> as an Int), or <symbol>-<decimal numeral>.
- */
-fun labelOffsetPart(labelArg: String): Int {
-    for (i in labelArg.indices) {
-        if (labelArg[i] == '+' || labelArg[i] == '-') {
-            return labelArg.substring(i).toInt()
-        }
-    }
-    return 0
-}
