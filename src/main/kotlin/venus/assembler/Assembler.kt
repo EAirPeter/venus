@@ -182,9 +182,10 @@ internal class AssemblerPassOne(private val text: String) {
                         prog.addToData((word shr 24).toByte())
                     } catch (e: NumberFormatException) {
                         /* arg is not a number; interpret as label */
-                        prog.addDataRelocation(prog.symbolPart(arg), 
-                                               prog.labelOffsetPart(arg),
-                                               currentDataOffset - MemorySegments.STATIC_BEGIN)
+                        prog.addDataRelocation(
+                            prog.symbolPart(arg),
+                            prog.labelOffsetPart(arg),
+                            currentDataOffset - MemorySegments.STATIC_BEGIN)
                         prog.addToData(0)
                         prog.addToData(0)
                         prog.addToData(0)
@@ -238,14 +239,14 @@ internal class AssemblerPassOne(private val text: String) {
                 println("Warning: $directive not currently supported!")
             }
 
-
             else -> throw AssemblerError("unknown assembler directive $directive")
         }
     }
 
     fun addRelocation(relocator: Relocator, offset: Int, label: String) =
-            prog.addRelocation(relocator, prog.symbolPart(label),
-                               prog.labelOffsetPart(label), offset)
+            prog.addRelocation(
+                relocator, prog.symbolPart(label),
+                prog.labelOffsetPart(label), offset)
 
 }
 
@@ -304,7 +305,7 @@ internal class AssemblerPassTwo(val prog: Program, val talInstructions: List<Deb
     }
 
     /** Return the ultimate definition of SYM, an .equ-defined symbol, in
-     *  PROG, assuming that if SYM is in ACTIVE, it is part of a 
+     *  PROG, assuming that if SYM is in ACTIVE, it is part of a
      *  circular chain of definitions. */
     private fun findDefn(sym: String, prog: Program,
                          active: HashSet<String>): Int {
@@ -324,9 +325,9 @@ internal class AssemblerPassTwo(val prog: Program, val talInstructions: List<Deb
             return result
         } else {
             throw AssemblerError("undefined symbol: $value")
-        }            
+        }
     }
-        
+
 }
 
 /**
@@ -336,4 +337,3 @@ internal class AssemblerPassTwo(val prog: Program, val talInstructions: List<Deb
  * @return the instruction (aka the first argument, in lowercase)
  */
 private fun getInstruction(tokens: LineTokens) = tokens[0].toLowerCase()
-

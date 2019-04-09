@@ -94,7 +94,7 @@ class Program(val name: String = "anonymous") {
             throw AssemblerError("bad symbol reference: $labelArg")
         }
         return match.groupValues[1]
-    } 
+    }
 
     /** Return the numeric offset part of LABELARG, where LABELARG may be either
      *  <symbol> (result 0), <symbol>+<decimal numeral> (result
@@ -174,8 +174,8 @@ class Program(val name: String = "anonymous") {
      */
     fun addRelocation(relocator: Relocator, label: String, labelOffset: Int,
                       offset: Int = textSize) =
-            relocationTable.add(RelocationInfo(relocator, offset,
-                                               label, labelOffset))
+            relocationTable.add(RelocationInfo(
+                relocator, offset, label, labelOffset))
 
     /**
      * Adds a line to the data relocation table.
@@ -186,10 +186,10 @@ class Program(val name: String = "anonymous") {
      * @param offset the byte offset at which to apply the relocation
      *               (from the start of the program)
      */
-    fun addDataRelocation(label: String, labelOffset: Int,
-                           offset: Int = textSize) =
-            dataRelocationTable.add(DataRelocationInfo(offset,
-                                                       label, labelOffset))
+    fun addDataRelocation(
+        label: String, labelOffset: Int,
+        offset: Int = textSize) =
+            dataRelocationTable.add(DataRelocationInfo(offset, label, labelOffset))
 
     /**
      * Makes a label global.
