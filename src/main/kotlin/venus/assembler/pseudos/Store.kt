@@ -28,7 +28,7 @@ object Store : PseudoWriter() {
                                     label)
                 return listOf(listOf(args[0], args[1], "0", arg3))
             }
-            /* assume it's a label */            
+            /* assume it's a label */
         }
 
         val auipc = listOf("auipc", arg3, "0")

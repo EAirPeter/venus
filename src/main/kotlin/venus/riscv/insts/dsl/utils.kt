@@ -1,8 +1,5 @@
 package venus.riscv.insts.dsl
 
-import venus.assembler.AssemblerError
-import venus.riscv.userStringToInt
-
 internal fun compareUnsigned(v1: Int, v2: Int): Int {
     return (v1 xor Int.MIN_VALUE).compareTo(v2 xor Int.MIN_VALUE)
 }

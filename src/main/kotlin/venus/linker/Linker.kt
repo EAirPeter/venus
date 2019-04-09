@@ -79,7 +79,7 @@ object Linker {
             }
             prog.dataSegment.forEach(linkedProgram.prog::addToData)
 
-            for ((relocator, offset, label, labelOffset) 
+            for ((relocator, offset, label, labelOffset)
                 in prog.relocationTable) {
 
                 val location = textTotalOffset + offset
@@ -94,8 +94,9 @@ object Linker {
                         relocator(mcode, location, toAddress + labelOffset)
                     } else {
                         /* need to relocate globally */
-                        toRelocate.add(RelocationInfo(relocator, location,
-                                                      label, labelOffset))
+                        toRelocate.add(RelocationInfo(
+                            relocator, location,
+                            label, labelOffset))
                     }
                 }
             }
@@ -106,16 +107,19 @@ object Linker {
                 if (toAddress0 != null) {
                     val toAddress = toAddress0 + labelOffset
                     linkedProgram.prog.overwriteData(location, toAddress.toByte())
-                    linkedProgram.prog.overwriteData(location + 1,
-                                                     (toAddress shr 8).toByte())
-                    linkedProgram.prog.overwriteData(location + 2,
-                                                     (toAddress shr 16).toByte())
-                    linkedProgram.prog.overwriteData(location + 3,
-                                                     (toAddress shr 24).toByte())
+                    linkedProgram.prog.overwriteData(
+                        location + 1,
+                        (toAddress shr 8).toByte())
+                    linkedProgram.prog.overwriteData(
+                        location + 2,
+                        (toAddress shr 16).toByte())
+                    linkedProgram.prog.overwriteData(
+                        location + 3,
+                        (toAddress shr 24).toByte())
                 } else {
                     /* need to relocate globally */
-                    toRelocateData.add(DataRelocationInfo(location,
-                                                          label, labelOffset))
+                    toRelocateData.add(DataRelocationInfo(
+                        location, label, labelOffset))
                 }
             }
 

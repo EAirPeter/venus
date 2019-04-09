@@ -18,8 +18,9 @@ object ITypeParser : InstructionParser {
             mcode[InstructionField.IMM_11_0] =
                 prog.getImmediate(args[2], I_TYPE_MIN, I_TYPE_MAX)
         } else {
-            prog.addRelocation(ImmAbsRelocator, prog.symbolPart(args[2]),
-                               prog.labelOffsetPart(args[2]))
+            prog.addRelocation(
+                ImmAbsRelocator, prog.symbolPart(args[2]),
+                prog.labelOffsetPart(args[2]))
         }
     }
 }
