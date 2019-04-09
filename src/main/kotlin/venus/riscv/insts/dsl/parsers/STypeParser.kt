@@ -3,7 +3,6 @@ package venus.riscv.insts.dsl.parsers
 import venus.riscv.InstructionField
 import venus.riscv.MachineCode
 import venus.riscv.Program
-import venus.riscv.insts.dsl.getImmediate
 
 object STypeParser : InstructionParser {
     const val S_TYPE_MIN = -2048
@@ -11,7 +10,7 @@ object STypeParser : InstructionParser {
     override operator fun invoke(prog: Program, mcode: MachineCode, args: List<String>) {
         checkArgsLength(args.size, 3)
 
-        val imm = getImmediate(args[1], S_TYPE_MIN, S_TYPE_MAX)
+        val imm = prog.getImmediate(args[1], S_TYPE_MIN, S_TYPE_MAX)
         mcode[InstructionField.RS1] = regNameToNumber(args[2])
         mcode[InstructionField.RS2] = regNameToNumber(args[0])
         mcode[InstructionField.IMM_4_0] = imm

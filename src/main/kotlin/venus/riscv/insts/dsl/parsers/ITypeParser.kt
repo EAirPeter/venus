@@ -4,7 +4,6 @@ import venus.riscv.InstructionField
 import venus.riscv.MachineCode
 import venus.riscv.Program
 import venus.riscv.insts.dsl.relocators.ImmAbsRelocator
-import venus.riscv.insts.dsl.getImmediate
 import venus.riscv.isNumeral
 
 object ITypeParser : InstructionParser {
@@ -17,7 +16,7 @@ object ITypeParser : InstructionParser {
         mcode[InstructionField.RS1] = regNameToNumber(args[1])
         if (isNumeral(args[2])) {
             mcode[InstructionField.IMM_11_0] =
-                getImmediate(args[2], I_TYPE_MIN, I_TYPE_MAX)
+                prog.getImmediate(args[2], I_TYPE_MIN, I_TYPE_MAX)
         } else {
             prog.addRelocation(ImmAbsRelocator, prog.symbolPart(args[2]),
                                prog.labelOffsetPart(args[2]))

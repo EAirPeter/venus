@@ -118,7 +118,7 @@ class Program(val name: String = "anonymous") {
         if (offsetSym !in labels) {
             throw AssemblerError("undefined symbol: $offsetSym")
         }
-        return labels[offsetSym]!!
+        return if (sign == "-") -labels[offsetSym]!! else labels[offsetSym]!!
     }
 
     /**
@@ -132,6 +132,35 @@ class Program(val name: String = "anonymous") {
     fun getLabelOffset(label: String): Int? {
         val loc = labels.get(label)
         return loc?.minus(textSize)
+    }
+
+    /**
+     * Gets the immediate from a string, checking if it is in range.
+     *
+     * @param str the immediate as a string
+     * @param min the minimum allowable value of the immediate
+     * @param max the maximum allowable value of the immediate
+     * @return the immediate, as an integer
+     *
+     * @throws IllegalArgumentException if the wrong number of arguments is given
+     */
+    internal fun getImmediate(str: String, min: Int, max: Int): Int {
+        val imm = try {
+            userStringToInt(str)
+        } catch (e: NumberFormatException) {
+            val sym = symbolPart(str)
+            val offsetVal = labelOffsetPart(str)
+            if (sym != "" && sym !in labels) {
+                throw AssemblerError("undefined symbol: $sym")
+            }
+            val symVal = if (sym == "") 0 else labels[sym]!!
+            symVal + offsetVal
+        }
+
+        if (imm !in min..max)
+            throw AssemblerError("immediate $str (= $imm) out of range (should be between $min and $max)")
+
+        return imm
     }
 
     /**

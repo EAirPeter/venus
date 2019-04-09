@@ -3,7 +3,6 @@ package venus.riscv.insts.dsl.parsers
 import venus.riscv.InstructionField
 import venus.riscv.MachineCode
 import venus.riscv.Program
-import venus.riscv.insts.dsl.getImmediate
 
 object ShiftImmediateParser : InstructionParser {
     const val SHIFT_MIN = 0
@@ -13,6 +12,7 @@ object ShiftImmediateParser : InstructionParser {
 
         mcode[InstructionField.RD] = regNameToNumber(args[0])
         mcode[InstructionField.RS1] = regNameToNumber(args[1])
-        mcode[InstructionField.SHAMT] = getImmediate(args[2], SHIFT_MIN, SHIFT_MAX)
+        mcode[InstructionField.SHAMT] =
+            prog.getImmediate(args[2], SHIFT_MIN, SHIFT_MAX)
     }
 }
