@@ -16,7 +16,8 @@ object Store : PseudoWriter() {
         checkArgsLength(args, 4)
         val hasParens = args[3].startsWith('(')
         val label = args[2]
-        val arg3 = if (hasParens) args[3] else args[3].substring(1, args[3].length - 1)
+        val arg3 =
+            if (hasParens) args[3].substring(1, args[3].length - 1) else args[3]
         try {
             userStringToInt(label)
             /* if it's a number, this is just an ordinary store instruction */
