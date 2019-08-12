@@ -19,6 +19,9 @@ venus164 is [available online](https://chocopy.github.io/venus).
 * `.word <label>` directive - [Relocatable data words](https://github.com/kvakil/venus/pull/20)
 * `.align <n>` directive - [Align data words to powers of 2](https://github.com/kvakil/venus/pull/21)
 * `.string` directive - [alias for `.asciiz`](https://github.com/kvakil/venus/pull/22)
+* `.equiv` directive - aliases `.equ` and `.set`
+* Constant expressions: e.g. adding/subtracting immediate values to/from labels
+* Offset addressing: e.g. `sw rd, OFFSET(rs)`
 
 ## Building
 
