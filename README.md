@@ -20,7 +20,7 @@ venus164 is [available online](https://chocopy.github.io/venus).
 * `.align <n>` directive - [Align data words to powers of 2](https://github.com/kvakil/venus/pull/21)
 * `.string` directive - [alias for `.asciiz`](https://github.com/kvakil/venus/pull/22)
 
-## Building
+## Building the Web version
 
 Build the backend:
 
@@ -29,6 +29,21 @@ Build the backend:
 Build the frontend+backend bundle:
 
     $ grunt dist
+
+The website should be built in the `out` directory.
+
+## Building the JAR
+
+Checkout the `jvm` branch and run
+
+    $ gradle clean jar
+
+## Releasing a new version to the Venus164 Maven repository
+
+Checkout the `maven-repository` branch and run
+
+   $ ./publish.sh VERSION JARFILE
+
 
 ## Resources
 
