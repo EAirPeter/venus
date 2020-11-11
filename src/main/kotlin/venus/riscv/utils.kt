@@ -34,13 +34,18 @@ fun isNumeral(s: String): Boolean {
 private fun isCharacterLiteral(s: String) =
         s.first() == '\'' && s.last() == '\''
 
+val escape_regex = Regex("\\\\[\\\\nrtb\"']")
+
 fun unescapeString(s: String) =
-        s.replace("\\n", "\n")
+        s.replace(escape_regex, {
+            mat : MatchResult -> mat.value.replace("\\n", "\n")
                 .replace("\\r", "\r")
                 .replace("\\t", "\t")
                 .replace("\\b", "\b")
                 .replace("\\\"", "\"")
                 .replace("\\'", "'")
+                .replace("\\\\", "\\")
+        })
 
 private fun characterLiteralToInt(s: String): Int {
     val stripSingleQuotes = s.drop(1).dropLast(1)
