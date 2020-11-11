@@ -68,7 +68,7 @@ private fun readString(sim: Simulator) {
         i += 1
     }
     sim.storeByte(dest + i, 0)
-    sim.setReg(10, i);
+    sim.setReg(10, i)
 }
 
 private fun sbrk(sim: Simulator) {

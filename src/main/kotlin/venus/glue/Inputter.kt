@@ -42,5 +42,5 @@ internal object Inputter {
             return buffer.get(bufferPntr - 1).toInt()
         }
     }
-        
+
 }
