@@ -20,9 +20,12 @@ class Program(val name: String = "anonymous") {
     val labels = HashMap<String, Int>()
     val equivs = HashMap<String, String>()
     val relocationTable = ArrayList<RelocationInfo>()
+    val rodataRelocationTable = ArrayList<DataRelocationInfo>()
     val dataRelocationTable = ArrayList<DataRelocationInfo>()
+    val rodataSegment = ArrayList<Byte>()
     val dataSegment = ArrayList<Byte>()
     var textSize = 0
+    var rodataSize = 0
     var dataSize = 0
     private val globalLabels = HashSet<String>()
 
@@ -37,6 +40,16 @@ class Program(val name: String = "anonymous") {
     }
 
     /**
+     * Adds a byte of rodata to the program, and increments the rodata size.
+     *
+     * @param byte the byte to add
+     */
+    fun addToRodata(byte: Byte) {
+        rodataSegment.add(byte)
+        rodataSize++
+    }
+
+    /**
      * Adds a byte of data to the program, and increments the data size.
      *
      * @param byte the byte to add
@@ -44,6 +57,16 @@ class Program(val name: String = "anonymous") {
     fun addToData(byte: Byte) {
         dataSegment.add(byte)
         dataSize++
+    }
+
+    /**
+     * Overwrites a byte of rodata in the program's rodata segment
+     *
+     * @param offset the offset at which to overwrite
+     * @param byte the value to overwrite with
+     */
+    fun overwriteRodata(offset: Int, byte: Byte) {
+        rodataSegment[offset] = byte
     }
 
     /**
@@ -176,6 +199,20 @@ class Program(val name: String = "anonymous") {
                       offset: Int = textSize) =
             relocationTable.add(RelocationInfo(
                 relocator, offset, label, labelOffset))
+
+    /**
+     * Adds a line to the rodata relocation table.
+     *
+     * @param label the label to relocate
+     * @param labelOffset amount to add to the label value before applying
+     *                    relocation
+     * @param offset the byte offset at which to apply the relocation
+     *               (from the start of the program)
+     */
+    fun addRodataRelocation(
+            label: String, labelOffset: Int,
+            offset: Int = textSize) =
+            rodataRelocationTable.add(DataRelocationInfo(offset, label, labelOffset))
 
     /**
      * Adds a line to the data relocation table.

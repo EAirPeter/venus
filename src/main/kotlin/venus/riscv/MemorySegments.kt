@@ -6,6 +6,8 @@ object MemorySegments {
     const val STACK_BEGIN = 0x7fff_fff0
     /** Memory address where the heap segment starts */
     const val HEAP_BEGIN = 0x1000_8000
+    /** Memory address where the rodata segment starts */
+    const val CONST_BEGIN = 0x0800_0000
     /** Memory address where the data segment starts */
     const val STATIC_BEGIN = 0x1000_0000
     /**

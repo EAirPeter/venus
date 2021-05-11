@@ -28,6 +28,12 @@ class Simulator(val linkedProgram: LinkedProgram) {
             maxpc += inst.length
         }
 
+        var rodataOffset = MemorySegments.CONST_BEGIN
+        for (datum in linkedProgram.prog.rodataSegment) {
+            state.mem.storeByte(rodataOffset, datum.toInt())
+            rodataOffset++
+        }
+
         var dataOffset = MemorySegments.STATIC_BEGIN
         for (datum in linkedProgram.prog.dataSegment) {
             state.mem.storeByte(dataOffset, datum.toInt())
