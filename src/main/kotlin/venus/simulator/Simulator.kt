@@ -114,19 +114,30 @@ class Simulator(val linkedProgram: LinkedProgram) {
     fun loadHalfWord(addr: Int): Int = state.mem.loadHalfWord(addr)
     fun loadWord(addr: Int): Int = state.mem.loadWord(addr)
 
+    private fun isWritable(addr: Int, size: Int): Boolean {
+        val end = addr + size - 1
+        return end >= MemorySegments.STATIC_BEGIN
+    }
+
     fun storeByte(addr: Int, value: Int) {
+        if (!isWritable(addr, 1))
+            throw AccessError(getPC(), addr, 1)
         preInstruction.add(MemoryDiff(addr, loadWord(addr)))
         state.mem.storeByte(addr, value)
         postInstruction.add(MemoryDiff(addr, loadWord(addr)))
     }
 
     fun storeHalfWord(addr: Int, value: Int) {
+        if (!isWritable(addr, 2))
+            throw AccessError(getPC(), addr, 2)
         preInstruction.add(MemoryDiff(addr, loadWord(addr)))
         state.mem.storeHalfWord(addr, value)
         postInstruction.add(MemoryDiff(addr, loadWord(addr)))
     }
 
     fun storeWord(addr: Int, value: Int) {
+        if (!isWritable(addr, 4))
+            throw AccessError(getPC(), addr, 4)
         preInstruction.add(MemoryDiff(addr, loadWord(addr)))
         state.mem.storeWord(addr, value)
         postInstruction.add(MemoryDiff(addr, loadWord(addr)))

@@ -7,6 +7,7 @@ import venus.assembler.AssemblerError
 import venus.linker.Linker
 import venus.riscv.InstructionField
 import venus.riscv.userStringToInt
+import venus.simulator.AccessError
 import venus.simulator.Simulator
 import kotlin.browser.document
 import kotlin.browser.window
@@ -74,7 +75,14 @@ import kotlin.browser.window
         } else {
             Renderer.setRunButtonSpinning(true)
             timer = window.setTimeout(Driver::runStart, TIMEOUT_TIME)
-            sim.step() // walk past breakpoint
+            try {
+                sim.step() // walk past breakpoint
+            } catch (e: AccessError) {
+                runEnd()
+                Renderer.updateAll()
+                Renderer.displayError(e)
+                return
+            }
         }
     }
 
@@ -101,8 +109,15 @@ import kotlin.browser.window
                 return
             }
 
-            sim.step()
-            cycles++
+            try {
+                sim.step()
+                cycles++
+            } catch (e: AccessError) {
+                runEnd()
+                Renderer.updateAll()
+                Renderer.displayError(e)
+                return
+            }
         }
 
         timer = window.setTimeout(Driver::runStart, TIMEOUT_TIME)
@@ -118,9 +133,16 @@ import kotlin.browser.window
      * Runs the simulator for one step and renders any updates.
      */
     @JsName("step") fun step() {
-        val diffs = sim.step()
-        Renderer.updateFromDiffs(diffs)
-        Renderer.updateControlButtons()
+        try {
+            val diffs = sim.step()
+            Renderer.updateFromDiffs(diffs)
+            Renderer.updateControlButtons()
+        } catch (e: AccessError) {
+            runEnd()
+            Renderer.updateAll()
+            Renderer.displayError(e)
+            return
+        }
     }
 
     /**

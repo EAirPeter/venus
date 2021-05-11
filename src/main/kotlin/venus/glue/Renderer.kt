@@ -7,6 +7,7 @@ import venus.riscv.InstructionField
 import venus.riscv.MachineCode
 import venus.riscv.MemorySegments
 import venus.riscv.insts.dsl.Instruction
+import venus.simulator.AccessError
 import venus.simulator.Diff
 import venus.simulator.Simulator
 import venus.simulator.diffs.MemoryDiff
@@ -75,6 +76,11 @@ internal object Renderer {
 
     /** Display a given [AssemblerError] */
     @Suppress("UNUSED_PARAMETER") fun displayError(e: AssemblerError) {
+        js("alert(e.message)")
+    }
+
+    /** Display a given [AccessError] */
+    @Suppress("UNUSED_PARAMETER") fun displayError(e: AccessError) {
         js("alert(e.message)")
     }
 
