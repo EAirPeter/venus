@@ -50,10 +50,14 @@ internal class AssemblerPassOne(private val text: String) {
     private val prog = Program()
     /** The text offset where the next instruction will be written */
     private var currentTextOffset = MemorySegments.TEXT_BEGIN
+    /** The rodata offset where more rodata will be written */
+    private var currentRodataOffset = MemorySegments.CONST_BEGIN
     /** The data offset where more data will be written */
     private var currentDataOffset = MemorySegments.STATIC_BEGIN
     /** Whether or not we are currently in the text segment */
     private var inTextSegment = true
+    /** Whether or not we are currently in the rodata segment */
+    private var inRodataSegment = false
     /** TAL Instructions which will be added to the program */
     private val talInstructions = ArrayList<DebugInstruction>()
     /** The current line number (for user-friendly errors) */
@@ -88,9 +92,15 @@ internal class AssemblerPassOne(private val text: String) {
                 } else {
                     val expandedInsts = replacePseudoInstructions(args)
                     for (inst in expandedInsts) {
-                        val dbg = DebugInfo(currentLineNumber, line)
-                        talInstructions.add(DebugInstruction(dbg, inst))
-                        currentTextOffset += 4
+                        if (inTextSegment) {
+                            val dbg = DebugInfo(currentLineNumber, line)
+                            talInstructions.add(DebugInstruction(dbg, inst))
+                            currentTextOffset += 4
+                        } else if (inRodataSegment) {
+                            throw AssemblerError("could not emit instructions in rodata segment")
+                        } else {
+                            throw AssemblerError("could not emit instructions in data segment")
+                        }
                     }
                 }
             } catch (e: AssemblerError) {
@@ -100,7 +110,8 @@ internal class AssemblerPassOne(private val text: String) {
     }
 
     /** Gets the current offset (either text or data) depending on where we are writing */
-    fun getOffset() = if (inTextSegment) currentTextOffset else currentDataOffset
+    fun getOffset() = if (inTextSegment) currentTextOffset else
+        if (inRodataSegment) currentRodataOffset else currentDataOffset
 
     /**
      * Determines if the given token is an assembler directive
@@ -138,8 +149,18 @@ internal class AssemblerPassOne(private val text: String) {
      */
     private fun parseAssemblerDirective(directive: String, args: LineTokens) {
         when (directive) {
-            ".data" -> inTextSegment = false
-            ".text" -> inTextSegment = true
+            ".rodata" -> {
+                inTextSegment = false
+                inRodataSegment = true
+            }
+            ".data" -> {
+                inTextSegment = false
+                inRodataSegment = false
+            }
+            ".text" -> {
+                inTextSegment = true
+                inRodataSegment = false
+            }
 
             ".byte" -> {
                 for (arg in args) {
@@ -147,8 +168,15 @@ internal class AssemblerPassOne(private val text: String) {
                     if (byte !in -127..255) {
                         throw AssemblerError("invalid byte $byte too big")
                     }
-                    prog.addToData(byte.toByte())
-                    currentDataOffset++
+                    if (inTextSegment) {
+                        throw AssemblerError("could not define byte in text segment")
+                    } else if (inRodataSegment) {
+                        prog.addToRodata(byte.toByte())
+                        currentRodataOffset++
+                    } else {
+                        prog.addToData(byte.toByte())
+                        currentDataOffset++
+                    }
                 }
             }
 
@@ -163,35 +191,74 @@ internal class AssemblerPassOne(private val text: String) {
                     if (c.toInt() !in 0..127) {
                         throw AssemblerError("unexpected non-ascii character: $c")
                     }
-                    prog.addToData(c.toByte())
-                    currentDataOffset++
+                    if (inTextSegment) {
+                        throw AssemblerError("could not define string in text segment")
+                    } else if (inRodataSegment) {
+                        prog.addToRodata(c.toByte())
+                        currentRodataOffset++
+                    } else {
+                        prog.addToData(c.toByte())
+                        currentDataOffset++
+                    }
                 }
 
                 /* Add NUL terminator */
-                prog.addToData(0)
-                currentDataOffset++
+                if (inTextSegment) {
+                    throw AssemblerError("could not define string in text segment")
+                } else if (inRodataSegment) {
+                    prog.addToRodata(0)
+                    currentRodataOffset++
+                } else {
+                    prog.addToData(0)
+                    currentDataOffset++
+                }
             }
 
             ".word" -> {
                 for (arg in args) {
                     try {
                         val word = userStringToInt(arg)
-                        prog.addToData(word.toByte())
-                        prog.addToData((word shr 8).toByte())
-                        prog.addToData((word shr 16).toByte())
-                        prog.addToData((word shr 24).toByte())
+                        if (inTextSegment) {
+                            throw AssemblerError("could not define word in text segment")
+                        } else if (inRodataSegment) {
+                            prog.addToRodata(word.toByte())
+                            prog.addToRodata((word shr 8).toByte())
+                            prog.addToRodata((word shr 16).toByte())
+                            prog.addToRodata((word shr 24).toByte())
+                            currentRodataOffset += 4
+                        } else {
+                            prog.addToData(word.toByte())
+                            prog.addToData((word shr 8).toByte())
+                            prog.addToData((word shr 16).toByte())
+                            prog.addToData((word shr 24).toByte())
+                            currentDataOffset += 4
+                        }
                     } catch (e: NumberFormatException) {
                         /* arg is not a number; interpret as label */
-                        prog.addDataRelocation(
-                            prog.symbolPart(arg),
-                            prog.labelOffsetPart(arg),
-                            currentDataOffset - MemorySegments.STATIC_BEGIN)
-                        prog.addToData(0)
-                        prog.addToData(0)
-                        prog.addToData(0)
-                        prog.addToData(0)
+                        if (inTextSegment) {
+                            throw AssemblerError("could not define word in text segment")
+                        } else if (inRodataSegment) {
+                            prog.addRodataRelocation(
+                                    prog.symbolPart(arg),
+                                    prog.labelOffsetPart(arg),
+                                    currentRodataOffset - MemorySegments.CONST_BEGIN)
+                            prog.addToRodata(0)
+                            prog.addToRodata(0)
+                            prog.addToRodata(0)
+                            prog.addToRodata(0)
+                            currentRodataOffset += 4
+                        } else {
+                            prog.addDataRelocation(
+                                    prog.symbolPart(arg),
+                                    prog.labelOffsetPart(arg),
+                                    currentDataOffset - MemorySegments.STATIC_BEGIN)
+                            prog.addToData(0)
+                            prog.addToData(0)
+                            prog.addToData(0)
+                            prog.addToData(0)
+                            currentDataOffset += 4
+                        }
                     }
-                    currentDataOffset += 4
                 }
             }
 
@@ -199,10 +266,19 @@ internal class AssemblerPassOne(private val text: String) {
                 checkArgsLength(args, 1)
                 try {
                     val reps = userStringToInt(args[0])
-                    for (c in 1..reps) {
-                        prog.addToData(0)
+                    if (inTextSegment) {
+                        throw AssemblerError("could not add space in text segment")
+                    } else if (inRodataSegment) {
+                        for (c in 1..reps) {
+                            prog.addToRodata(0)
+                        }
+                        currentRodataOffset += reps
+                    } else {
+                        for (c in 1..reps) {
+                            prog.addToData(0)
+                        }
+                        currentDataOffset += reps
                     }
-                    currentDataOffset += reps
                 } catch (e: NumberFormatException) {
                     throw AssemblerError("${args[0]} not a valid argument")
                 }
@@ -221,9 +297,18 @@ internal class AssemblerPassOne(private val text: String) {
                 val mask = (1 shl pow2) - 1 // Sets pow2 rightmost bits to 1
 
                 /* Add padding until data offset aligns with given power of 2 */
-                while ((currentDataOffset and mask) != 0) {
-                    prog.addToData(0)
-                    currentDataOffset++
+                if (inTextSegment) {
+                    throw AssemblerError("could not align in text segment")
+                } else if (inRodataSegment) {
+                    while ((currentRodataOffset and mask) != 0) {
+                        prog.addToRodata(0)
+                        currentRodataOffset++
+                    }
+                } else {
+                    while ((currentDataOffset and mask) != 0) {
+                        prog.addToData(0)
+                        currentDataOffset++
+                    }
                 }
             }
 

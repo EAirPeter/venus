@@ -435,6 +435,7 @@ internal object Renderer {
         val where = jumpSelect.value
         activeMemoryAddress = when (where) {
             "Text" -> MemorySegments.TEXT_BEGIN
+            "Rodata" -> MemorySegments.CONST_BEGIN
             "Data" -> MemorySegments.STATIC_BEGIN
             "Heap" -> MemorySegments.HEAP_BEGIN
             "Stack" -> MemorySegments.STACK_BEGIN

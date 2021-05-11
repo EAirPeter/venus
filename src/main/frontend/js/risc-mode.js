@@ -105,7 +105,7 @@ CodeMirror.defineMode("riscv", function(config, parserConfig) {
     ], "");
 
     var keywords = regexFromWords([
-        ".data", ".text", ".globl", ".float", ".double",
+        ".rodata", ".data", ".text", ".globl", ".float", ".double",
         ".asciiz", ".word", ".byte"
     ], "i");
 
